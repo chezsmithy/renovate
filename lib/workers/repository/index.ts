@@ -25,6 +25,7 @@ import {
   HttpCacheStats,
   HttpStats,
   LookupStats,
+  DependencyDashboardStats,
   ObsoleteCacheHitLogger,
   PackageCacheStats,
 } from '../../util/stats';
@@ -155,6 +156,7 @@ export async function renovateRepository(
   LookupStats.report();
   ObsoleteCacheHitLogger.report();
   AbandonedPackageStats.report();
+  DependencyDashboardStats.report();
   const cloned = isCloned();
   logger.info({ cloned, durationMs: splits.total }, 'Repository finished');
   resetRepositoryLogLevelRemaps();

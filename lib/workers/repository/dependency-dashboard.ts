@@ -10,6 +10,7 @@ import { regEx } from '../../util/regex';
 import { coerceString } from '../../util/string';
 import * as template from '../../util/template';
 import type { BranchConfig, SelectAllConfig } from '../types';
+import { DependencyDashboardStats } from '../../util/stats';
 import { extractRepoProblems } from './common';
 import type { ConfigMigrationResult } from './config-migration';
 import { getDepWarningsDashboard } from './errors-warnings';
@@ -269,6 +270,7 @@ export async function ensureDependencyDashboard(
       branch.result !== 'automerged' &&
       !branch.upgrades?.every((upgrade) => upgrade.remediationNotPossible),
   );
+  DependencyDashboardStats.record(config.repository, branches);
   if (
     !(
       config.dependencyDashboard === true ||

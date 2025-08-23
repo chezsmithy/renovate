@@ -6,9 +6,12 @@ import {
   HttpStats,
   LookupStats,
   PackageCacheStats,
+  DependencyDashboardStats,
   makeTimingReport,
 } from './stats';
 import { logger } from '~test/util';
+import { vi } from 'vitest';
+import { GlobalConfig } from '../config/global';
 
 describe('util/stats', () => {
   beforeEach(() => {
@@ -664,6 +667,44 @@ describe('util/stats', () => {
     it('does not log report when no data', () => {
       AbandonedPackageStats.report();
       expect(logger.logger.debug).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('DependencyDashboardStats', () => {
+    beforeEach(() => {
+      GlobalConfig.reset();
+      GlobalConfig.set({ datadogEnabled: true } as any);
+    });
+
+    afterEach(() => {
+      GlobalConfig.reset();
+    });
+
+    it('emits metrics for branches', async () => {
+      vi.mock('./metrics/datadog.js', () => ({
+        gaugeMetric: vi.fn(),
+      }));
+      const { gaugeMetric } = await import('./metrics/datadog.js');
+      const branches = [
+        {
+          result: 'needs-approval',
+          upgrades: [{ depName: 'a', manager: 'npm' }],
+        },
+        { result: 'error', upgrades: [{ depName: 'b', manager: 'npm' }] },
+      ] as any;
+      DependencyDashboardStats.record('some/repo', branches);
+      DependencyDashboardStats.report();
+      expect(gaugeMetric).toHaveBeenCalledTimes(2);
+      expect(gaugeMetric).toHaveBeenCalledWith(
+        'renovate.dependency_dashboard',
+        1,
+        {
+          status: 'needs-approval',
+          depName: 'a',
+          manager: 'npm',
+          repo: 'some/repo',
+        },
+      );
     });
   });
 });
