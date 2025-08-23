@@ -175,6 +175,10 @@ export interface RepoGlobalConfig {
   s3Endpoint?: string;
   s3PathStyle?: boolean;
   cachePrivatePackages?: boolean;
+  datadogApiKey?: string;
+  datadogHost?: string;
+  datadogPort?: number;
+  datadogEnabled?: boolean;
 }
 
 export interface LegacyAdminConfig {

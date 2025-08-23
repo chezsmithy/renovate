@@ -1,5 +1,8 @@
 import { logger } from '../logger';
+import type { BranchConfig } from '../workers/types';
 import * as memCache from './cache/memory';
+import { gaugeMetric } from './metrics/datadog';
+import { GlobalConfig } from '../config/global';
 import { parseUrl } from './url';
 
 type LookupStatsData = Record<string, number[]>;
@@ -572,6 +575,51 @@ export class AbandonedPackageStats {
     const report = this.getReport();
     if (Object.keys(report).length > 0) {
       logger.debug(report, 'Abandoned package statistics');
+    }
+  }
+}
+
+interface DashboardMetricTags {
+  status: string;
+  depName?: string;
+  manager?: string;
+  repo?: string;
+}
+
+type DashboardMetricData = Record<string, number>;
+
+export class DependencyDashboardStats {
+  static record(repo: string | undefined, branches: BranchConfig[]): void {
+    if (!GlobalConfig.get('datadogEnabled')) {
+      return;
+    }
+    const data =
+      memCache.get<DashboardMetricData>('dependency-dashboard-stats') ?? {};
+    for (const branch of branches) {
+      const status = branch.result ?? (branch.prNo ? 'pr-created' : 'unknown');
+      for (const upgrade of branch.upgrades ?? []) {
+        const tags: DashboardMetricTags = {
+          status,
+          depName: upgrade.depName,
+          manager: upgrade.manager,
+          repo,
+        };
+        const key = JSON.stringify(tags);
+        data[key] = (data[key] ?? 0) + 1;
+      }
+    }
+    memCache.set('dependency-dashboard-stats', data);
+  }
+
+  static report(): void {
+    if (!GlobalConfig.get('datadogEnabled')) {
+      return;
+    }
+    const data =
+      memCache.get<DashboardMetricData>('dependency-dashboard-stats') ?? {};
+    for (const [key, count] of Object.entries(data)) {
+      const tags = JSON.parse(key) as Record<string, string>;
+      gaugeMetric('renovate.dependency_dashboard', count, tags);
     }
   }
 }

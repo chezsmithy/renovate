@@ -52,3 +52,17 @@ Use the environment variable `RENOVATE_TRACING_CONSOLE_EXPORTER`.
 ## Examples
 
 An example with a local OpenTelemetry setup can be found on the [OpenTelemetry examples](examples/opentelemetry.md) page.
+
+## Datadog metrics
+
+Renovate can optionally export dependency dashboard metrics to Datadog via
+DogStatsD. Enable this by setting the global `datadogEnabled` option to `true`.
+You can customize the destination with `datadogHost`, `datadogPort`, and
+`datadogApiKey`.
+
+When enabled, Renovate emits a `renovate.dependency_dashboard` gauge for each
+run. The gauge value represents the number of dashboard items matching a set of
+tags. Each metric is tagged with the repository (`repo`), branch status,
+package manager, and dependency name so that counts can be grouped or filtered
+inside Datadog and tracked over time.
+These tagged gauges let you query per repository and observe trends over custom time windows.

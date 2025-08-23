@@ -109,6 +109,38 @@ const options: RenovateOptions[] = [
     globalOnly: true,
   },
   {
+    name: 'datadogEnabled',
+    description: 'Enable exporting metrics to Datadog.',
+    type: 'boolean',
+    default: false,
+    globalOnly: true,
+    stage: 'global',
+  },
+  {
+    name: 'datadogHost',
+    description: 'Datadog StatsD host.',
+    type: 'string',
+    default: 'localhost',
+    globalOnly: true,
+    stage: 'global',
+  },
+  {
+    name: 'datadogPort',
+    description: 'Datadog StatsD port.',
+    type: 'integer',
+    default: 8125,
+    globalOnly: true,
+    stage: 'global',
+  },
+  {
+    name: 'datadogApiKey',
+    description: 'Datadog API key.',
+    type: 'string',
+    default: null,
+    globalOnly: true,
+    stage: 'global',
+  },
+  {
     name: 'allowedCommands',
     description:
       'A list of regular expressions that decide which commands are allowed in post-upgrade tasks.',
